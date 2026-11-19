@@ -1,6 +1,8 @@
 import os
 import pandas as pd
+import os
 
+#Read the datasets
 data1 = pd.read_csv("Language Spoken At Home.csv")
 data2 = pd.read_csv("Age by Language Spoken.csv")
 
