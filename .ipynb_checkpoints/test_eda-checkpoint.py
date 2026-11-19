@@ -1,20 +1,57 @@
+import os
 import pandas as pd
 
 data1 = pd.read_csv("Language Spoken At Home.csv")
 data2 = pd.read_csv("Age by Language Spoken.csv")
 
-assert data1 is not None
-assert data2 is not None
+data1["Label (Grouping)"] = data1["Label (Grouping)"].str.strip()
+data2["Label (Grouping)"] = data2["Label (Grouping)"].str.strip()
 
-assert len(data1) > 0
-assert len(data2) > 0
+# Converts Strings to Integers
+cols = ["United States!!Estimate", "United States!!Margin of Error"]
 
-assert (data1.isna().sum().sum()) == 0
-assert (data2.isna().sum().sum()) == 0
+data1[cols] = data1[cols].replace(r"[±,]", "", regex=True).astype(int)
+data2[cols] = data2[cols].replace(r"[±,]", "", regex=True).astype(int)
 
+joined_data = pd.merge(
+    data1,
+    data2,
+    on="Label (Grouping)",
+    how="outer",
+    suffixes=("_Language", "_Age"),
+)
 
-assert "Label (Grouping)" in data1.columns
-assert "United States!!Estimate" in data1.columns
+combined_data = pd.concat(
+    [
+        data1.assign(Dataset="Language Spoken At Home"),
+        data2.assign(Dataset="Age by Language Spoken"),
+    ],
+    ignore_index=True,
+)
 
-assert "Label (Grouping)" in data2.columns
-assert "United States!!Estimate" in data2.columns
+assert len(joined_data) > 0
+assert len(combined_data) > 0
+
+assert (combined_data.isna().sum().sum()) == 0
+
+assert "Label (Grouping)" in joined_data.columns
+assert "United States!!Estimate_Language" in joined_data.columns
+assert "United States!!Margin of Error_Language" in joined_data.columns
+assert "United States!!Estimate_Age" in joined_data.columns
+assert "United States!!Margin of Error_Age" in joined_data.columns
+
+assert "Label (Grouping)" in combined_data.columns
+assert "United States!!Estimate" in combined_data.columns
+assert "United States!!Margin of Error" in combined_data.columns
+assert "Dataset" in combined_data.columns
+
+for value in combined_data["United States!!Estimate"]:
+    assert type(value) == int
+
+for value in combined_data["United States!!Margin of Error"]:
+    assert type(value) == int
+
+assert os.path.exists("combined_bar_plot.png")
+assert os.path.exists("combined_scatter_plot.png")
+
+print("All tests pass!")

@@ -17,6 +17,32 @@ cols = ["United States!!Estimate", "United States!!Margin of Error"]
 data1[cols] = data1[cols].replace(r"[±,]", "", regex=True).astype(int)
 data2[cols] = data2[cols].replace(r"[±,]", "", regex=True).astype(int)
 
+cols = ["United States!!Estimate", "United States!!Margin of Error"]
+
+data1[cols] = data1[cols].replace(r"[±,]", "", regex=True).astype(int)
+data2[cols] = data2[cols].replace(r"[±,]", "", regex=True).astype(int)
+
+# Join the datasets on Label
+joined_data = pd.merge(
+    data1,
+    data2,
+    on="Label (Grouping)",
+    how="outer",
+    suffixes=("_Language", "_Age"),
+)
+
+# Combined dataset across both tables
+combined_data = pd.concat(
+    [
+        data1.assign(Dataset="Language Spoken At Home"),
+        data2.assign(Dataset="Age by Language Spoken"),
+    ],
+    ignore_index=True,
+)
+
+combined_no_total = combined_data[
+    ~combined_data["Label (Grouping)"].str.contains("Total", case=False, na=False)
+
 # Bar Plot 1
 plt.figure(figsize=(10, 6))
 sns.barplot(
